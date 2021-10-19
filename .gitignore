@@ -1,0 +1,4 @@
+.idea/
+.venv/
+models_train/__pycache__/
+tests/__pycache__/
