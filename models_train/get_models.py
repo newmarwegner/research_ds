@@ -55,8 +55,8 @@ class DeepModels:
         """
         df = self.run_geopackage(name, extension)
         df = df.dropna()
-        self.X = df.iloc[:40, 1:5]
-        self.y = df.iloc[:40, 5]
+        self.X = df.iloc[:, 1:5]
+        self.y = df.iloc[:, 5]
         self.X_train, self.X_test, self.Y_train, self.Y_test = train_test_split(self.X,
                                                                                 self.y,
                                                                                 test_size=0.20,
