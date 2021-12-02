@@ -97,8 +97,12 @@ class DeepModels:
             """
             print('runing model svm')
             svm_ = SVC(kernel='rbf',
-                       C=1,
-                       gamma='auto')
+                       C=10,
+                       gamma=1)
+            
+            # svm_ = SVC(kernel='linear',
+            #            C=1
+            #            )
             
             return svm_.fit(X_train, Y_train)
         
@@ -118,7 +122,7 @@ class DeepModels:
             os.makedirs(dir_models)
         
         models_list = ['random_forest', 'svm', 'gb']
-        # models_list = ['svm', ]
+        #models_list = ['svm', ]
         
         for model in models_list:
             dump(locals()[model](self.X_train, self.Y_train),
@@ -141,11 +145,11 @@ class DeepModels:
                     Y_pred_train = model.predict(self.X_train)
                 else:
                     Y_pred = model.predict(self.X_test)
-                    Y_pred[np.where(Y_pred < 0.94)] = 0
-                    Y_pred[np.where(Y_pred >= 0.94)] = 1
+                    Y_pred[np.where(Y_pred < 0.80)] = 0
+                    Y_pred[np.where(Y_pred >= 0.80)] = 1
                     Y_pred_train = model.predict(self.X_train)
-                    Y_pred_train[np.where(Y_pred_train < 0.94)] = 0
-                    Y_pred_train[np.where(Y_pred_train >= 0.94)] = 1
+                    Y_pred_train[np.where(Y_pred_train < 0.80)] = 0
+                    Y_pred_train[np.where(Y_pred_train >= 0.80)] = 1
                 
                 accuracy_train = f'{n_model} Train Accuracy :: {round(accuracy_score(self.Y_train, Y_pred_train), 3)}'
                 accuracy_test = f'{n_model} Test Accuracy  :: {round(accuracy_score(self.Y_test, Y_pred), 3)}'
@@ -230,8 +234,8 @@ class Classification:
             model = load(open(model, 'rb'))
             if n_model == 'model_gb':
                 gb_predict = model.predict(stack)
-                gb_predict[np.where(gb_predict < 0.94)] = 0
-                gb_predict[np.where(gb_predict >= 0.94)] = 1
+                gb_predict[np.where(gb_predict < 0.80)] = 0
+                gb_predict[np.where(gb_predict >= 0.80)] = 1
                 predicts.append({n_model: {'predict': gb_predict.reshape(shape[0][0], -1)}})
             
             else:
@@ -262,47 +266,48 @@ class Classification:
 if __name__ == '__main__':
     ## Initialize class and create pkl models if not exists
     cl = Classification('amostra', 'gpkg')
-    ## Run classification
-    #print(cl.classified_tif())
+    # Run classification
+    cl.classified_tif()
+    #
+    for i in cl.dpmodels.get_estimates()[0]:
+        for est in i:
+            print(est)
 
-#   for i in cl.dpmodels.get_estimates()[0]:
-#        for est in i:
-#            print(est)
-
-
-#gridsearchcv para parametros svm
-    tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1e-3, 1e-4], 'C': [1, 10, 100, 1000]},
-                        {'kernel': ['linear'], 'C': [1, 10, 100, 1000]}]
-    
-    #tuned_parameters = [{'kernel': ['rbf'], 'gamma': [0.5,], 'C': [10, ]},]
-    #{'kernel': ['linear'], 'C': [1, 10, 100, 1000]}1/28 0.25/4
-    scores = ['precision', 'recall']
-
-    for score in scores:
-        print("# Tuning hyper-parameters for %s" % score)
-        print()
-
-        clf = GridSearchCV(SVC(), tuned_parameters, scoring='%s_macro' % score)
-        clf.fit(cl.dpmodels.X_train, cl.dpmodels.Y_train)
-
-        print("Best parameters set found on development set:")
-        print()
-        print(clf.best_params_)
-        print()
-        print("Grid scores on development set:")
-        print()
-        means = clf.cv_results_['mean_test_score']
-        stds = clf.cv_results_['std_test_score']
-        for mean, std, params in zip(means, stds, clf.cv_results_['params']):
-            print("%0.3f (+/-%0.03f) for %r"
-                  % (mean, std * 2, params))
-        print()
-
-        print("Detailed classification report:")
-        print()
-        print("The model is trained on the full development set.")
-        print("The scores are computed on the full evaluation set.")
-        print()
-        y_true, y_pred = cl.dpmodels.Y_test, clf.predict(cl.dpmodels.X_test)
-        print(metrics.classification_report(y_true, y_pred))
-        print()
+    # gridsearchcv para parametros svm
+    # tuned_parameters = [{'kernel': ['rbf'], 'gamma': [1, 10, 100], 'C': [0.02, 0.03, 1, 10, 100]}, ]
+    # # {'kernel': ['linear'], 'C': [1, 10, 100]}]
+    #
+    # # tuned_parameters = [{'kernel': ['rbf'], 'gamma': [0.5,], 'C': [10, ]},]
+    # # tuned_parameters = [{'kernel': ['linear'], 'C': [1, 10, 100, 1000]},]#1/28 0.25/4
+    # scores = ['precision', 'recall']
+    # # #scores = ['recall',]
+    # #
+    # #
+    # for score in scores:
+    #     print("# Tuning hyper-parameters for %s" % score)
+    #     print()
+    #
+    #     clf = GridSearchCV(SVC(), tuned_parameters, scoring='%s_macro' % score)
+    #     clf.fit(cl.dpmodels.X_train, cl.dpmodels.Y_train)
+    #
+    #     print("Best parameters set found on development set:")
+    #     print()
+    #     print(clf.best_params_)
+    #     print()
+    #     print("Grid scores on development set:")
+    #     print()
+    #     means = clf.cv_results_['mean_test_score']
+    #     stds = clf.cv_results_['std_test_score']
+    #     for mean, std, params in zip(means, stds, clf.cv_results_['params']):
+    #         print("%0.3f (+/-%0.03f) for %r"
+    #               % (mean, std * 2, params))
+    #     print()
+    #
+    #     print("Detailed classification report:")
+    #     print()
+    #     print("The model is trained on the full development set.")
+    #     print("The scores are computed on the full evaluation set.")
+    #     print()
+    #     y_true, y_pred = cl.dpmodels.Y_test, clf.predict(cl.dpmodels.X_test)
+    #     print(metrics.classification_report(y_true, y_pred))
+    #     print()
